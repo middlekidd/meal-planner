@@ -14,7 +14,7 @@ export default function App() {
   const [showModal, setShowModal]     = useState(false)
 
   const { preferences, setPreferences, prefsHash } = usePreferences()
-  const { plan, loading, error, generate, checkedItems, toggleItem } = useMealPlan(preferences, prefsHash)
+  const { plan, loading, daysReady, error, generate, checkedItems, toggleItem } = useMealPlan(preferences, prefsHash)
 
   function handleSavePreferences(updated) {
     setPreferences(updated)
@@ -73,7 +73,7 @@ export default function App() {
       {/* Main content */}
       <main className="max-w-2xl mx-auto px-4 py-6">
         {loading ? (
-          <LoadingState />
+          <LoadingState daysReady={daysReady} />
         ) : error ? (
           <ErrorState message={error} onRetry={generate} />
         ) : !plan ? (

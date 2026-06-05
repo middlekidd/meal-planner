@@ -42,32 +42,45 @@ Rules:
 - Keep prep times within the family's stated maximum.
 - Vary cuisines and avoid repeating the same protein two days in a row.`
 
-export async function generatePlan(preferences) {
+const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+
+function countDaysInText(text) {
+  const lower = text.toLowerCase()
+  return DAYS.filter((d) => lower.includes(`"${d}"`)).length
+}
+
+export async function generatePlan(preferences, onProgress) {
   const userPrompt = `Generate a complete weekly meal plan for this family:
 
 ${JSON.stringify(preferences, null, 2)}
 
 Remember: respond with valid JSON only, no markdown fences.`
 
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
+  const stream = client.messages.stream({
+    model: 'claude-haiku-4-5',
     max_tokens: 8000,
     system: SYSTEM_PROMPT,
     messages: [{ role: 'user', content: userPrompt }],
   })
 
-  const raw = message.content[0]?.text ?? ''
-  return parseJSON(raw)
+  let accumulated = ''
+
+  stream.on('text', (text) => {
+    accumulated += text
+    onProgress?.({ daysReady: countDaysInText(accumulated) })
+  })
+
+  await stream.finalMessage()
+
+  return parseJSON(accumulated)
 }
 
 function parseJSON(raw) {
   const trimmed = raw.trim()
 
-  // Try direct parse first
   try {
     return JSON.parse(trimmed)
   } catch (_) {
-    // Strip markdown fences if present
     const match = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/)
     if (match) {
       try {
@@ -77,7 +90,6 @@ function parseJSON(raw) {
       }
     }
 
-    // Last resort: find first { to last }
     const start = trimmed.indexOf('{')
     const end   = trimmed.lastIndexOf('}')
     if (start !== -1 && end > start) {

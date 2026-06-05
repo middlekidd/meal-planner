@@ -11,19 +11,22 @@ function isPlanStale() {
 }
 
 export function useMealPlan(preferences, prefsHash) {
-  const [plan, setPlanState] = useState(() => storage.getPlan())
-  const [loading, setLoading] = useState(false)
-  const [error, setError]   = useState(null)
-  // checkbox state: { [itemKey]: boolean }
+  const [plan, setPlanState]       = useState(() => storage.getPlan())
+  const [loading, setLoading]      = useState(false)
+  const [daysReady, setDaysReady]  = useState(0)
+  const [error, setError]          = useState(null)
   const [checkedItems, setCheckedItems] = useState({})
 
   const lastHashRef = useRef(null)
 
   const generate = useCallback(async () => {
     setLoading(true)
+    setDaysReady(0)
     setError(null)
     try {
-      const result = await generatePlan(preferences)
+      const result = await generatePlan(preferences, ({ daysReady }) => {
+        setDaysReady(daysReady)
+      })
       storage.setPlan(result)
       storage.setGeneratedAt(new Date().toISOString())
       // store current hash as the one that produced this plan
@@ -57,5 +60,5 @@ export function useMealPlan(preferences, prefsHash) {
     setCheckedItems((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
-  return { plan, loading, error, generate, checkedItems, toggleItem }
+  return { plan, loading, daysReady, error, generate, checkedItems, toggleItem }
 }
