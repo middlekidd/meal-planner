@@ -1,7 +1,15 @@
 import { useState } from 'react'
 
+const LIST_FIELDS = ['dietaryRestrictions', 'dislikedIngredients', 'cuisinePreferences']
+
 export default function PreferencesModal({ preferences, onSave, onClose }) {
   const [form, setForm] = useState(structuredClone(preferences))
+  // Keep list fields as raw strings while editing so newlines aren't stripped mid-type
+  const [rawLists, setRawLists] = useState({
+    dietaryRestrictions: (preferences.dietaryRestrictions ?? []).join('\n'),
+    dislikedIngredients: (preferences.dislikedIngredients ?? []).join('\n'),
+    cuisinePreferences:  (preferences.cuisinePreferences  ?? []).join('\n'),
+  })
 
   function update(path, value) {
     setForm((prev) => {
@@ -14,13 +22,17 @@ export default function PreferencesModal({ preferences, onSave, onClose }) {
     })
   }
 
-  function updateList(field, raw) {
-    update(field, raw.split('\n').map((s) => s.trim()).filter(Boolean))
+  function updateRawList(field, raw) {
+    setRawLists((prev) => ({ ...prev, [field]: raw }))
   }
 
   function handleSave(e) {
     e.preventDefault()
-    onSave(form)
+    const saved = structuredClone(form)
+    for (const field of LIST_FIELDS) {
+      saved[field] = rawLists[field].split('\n').map((s) => s.trim()).filter(Boolean)
+    }
+    onSave(saved)
     onClose()
   }
 
@@ -120,8 +132,8 @@ export default function PreferencesModal({ preferences, onSave, onClose }) {
             <Field label="Dietary restrictions (one per line)">
               <textarea
                 rows={3}
-                value={(form.dietaryRestrictions ?? []).join('\n')}
-                onChange={(e) => updateList('dietaryRestrictions', e.target.value)}
+                value={rawLists.dietaryRestrictions}
+                onChange={(e) => updateRawList('dietaryRestrictions', e.target.value)}
                 className={inputCls}
                 placeholder="e.g. Vegetarian&#10;No shellfish"
               />
@@ -129,8 +141,8 @@ export default function PreferencesModal({ preferences, onSave, onClose }) {
             <Field label="Disliked ingredients (one per line)">
               <textarea
                 rows={3}
-                value={(form.dislikedIngredients ?? []).join('\n')}
-                onChange={(e) => updateList('dislikedIngredients', e.target.value)}
+                value={rawLists.dislikedIngredients}
+                onChange={(e) => updateRawList('dislikedIngredients', e.target.value)}
                 className={inputCls}
                 placeholder="e.g. Coriander&#10;Blue cheese"
               />
@@ -138,8 +150,8 @@ export default function PreferencesModal({ preferences, onSave, onClose }) {
             <Field label="Cuisine preferences (one per line)">
               <textarea
                 rows={3}
-                value={(form.cuisinePreferences ?? []).join('\n')}
-                onChange={(e) => updateList('cuisinePreferences', e.target.value)}
+                value={rawLists.cuisinePreferences}
+                onChange={(e) => updateRawList('cuisinePreferences', e.target.value)}
                 className={inputCls}
                 placeholder="e.g. Mediterranean&#10;Asian-inspired"
               />
