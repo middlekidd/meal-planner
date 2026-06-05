@@ -24,9 +24,9 @@ You MUST respond with valid JSON only — no markdown fences, no prose before or
     "protein":   [...],
     "dairy":     [...],
     "grains":    [...],
-    "pantry":    [...],
     "frozen":    [...],
-    "other":     [...]
+    "other":     [...],
+    "staples":   [{ "item": "", "quantity": "", "notes": "" }]
   },
   "prepGuide": [
     { "task": "", "duration": "", "when": "", "makes": "" }
@@ -35,7 +35,9 @@ You MUST respond with valid JSON only — no markdown fences, no prose before or
 
 Rules:
 - Each meal has name, description (1–2 sentences), and infantAdaptation (how to serve safely for a BLW infant).
-- groceryList groups items under the keys listed; use at least produce, protein, grains, pantry.
+- groceryList groups items under the keys listed; use at least produce, protein, grains.
+- "staples" are pantry items the family very likely already has (olive oil, salt, pepper, basic spices, flour, sugar, stock cubes, vinegar, soy sauce, etc.) — list them so the family can check, but keep them visually separate from the main shop.
+- All other categories (produce, protein, dairy, grains, frozen, other) are items that need to be specifically purchased for this week's plan.
 - prepGuide lists batch-cooking or prep tasks that save time during the week.
 - Keep prep times within the family's stated maximum.
 - Vary cuisines and avoid repeating the same protein two days in a row.`
